@@ -120,9 +120,12 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
         Jedis jedis = pool.getResource();
 
         try {
-            jedis.del(user);
+            String value = jedis.get(user);
+            if(value != null) {
+                jedis.del(user);
 
-            logger.debug(">>>Delete online user: " + user);
+                logger.debug(">>>Delete online user: " + user);
+            }
         } finally {
             pool.returnResource(jedis);
         }
@@ -130,11 +133,13 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void availableSession(ClientSession session, Presence presence) {
+        logger.debug(">>> Available session" + session.getAddress().getNode());
         addOnlineUser(session.getAddress().getNode());
     }
 
     @Override
     public void unavailableSession(ClientSession session, Presence presence) {
+        logger.debug(">>> Unavailable session" + session.getAddress().getNode());
         delOnlineUser(session.getAddress().getNode());
     }
 
@@ -160,6 +165,7 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void sessionDestroyed(Session session) {
+        logger.debug(">>> Session destroyed" + session.getAddress().getNode());
         delOnlineUser(session.getAddress().getNode());
     }
 
