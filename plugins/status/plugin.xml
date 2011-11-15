@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin>
+    <class>com.netease.openfire.plugin.StatusPlugin</class>
+    <name>status</name>
+    <description>status plugin</description>
+    <author>chenke</author>
+    <version>0.1</version>
+    <date>16/9/2011</date>
+    <minServerVersion>3.7.0</minServerVersion>
+    <adminconsole/>
+<!--    
+    <adminconsole>
+        <tab id="tab-server">
+            <sidebar id="sidebar-server-settings">
+                <item id="search-props-edit-form" name="${search.props.edit.form.title}"
+                    url="search-props-edit-form.jsp"
+                    description="${search.props.edit.form.description}" />
+            </sidebar>
+        </tab>
+        <tab id="tab-users">
+            <sidebar id="sidebar-users">
+                <item id="advance-user-search" name="${advance.user.search.title}"
+                    url="advance-user-search.jsp"
+                    description="${advance.user.search.description}" />
+            </sidebar>
+        </tab>
+    </adminconsole>-->
+</plugin>
