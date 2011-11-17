@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
@@ -21,7 +20,9 @@ import org.xmpp.packet.Presence;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
+import redis.clients.jedis.exceptions.JedisException;
 
 public class StatusPlugin implements Plugin, PresenceEventListener, SessionEventListener {
     private static Logger logger = Logger.getLogger(StatusPlugin.class);
@@ -52,10 +53,12 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
         String host = pro.getProperty("cache_host");
         String port = pro.getProperty("cache_port");
 
-        GenericObjectPool.Config poolConfig = new GenericObjectPool.Config();
-        poolConfig.maxActive = 30;
-        poolConfig.minIdle = 30;
-        poolConfig.minEvictableIdleTimeMillis = 500;
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxActive(30);
+        poolConfig.setMinIdle(30);
+        poolConfig.setMinEvictableIdleTimeMillis(500);
+        // Validate Jedis connection before returned
+        poolConfig.setTestOnBorrow(true);
 
         if (port != null) {
             try {
@@ -75,7 +78,7 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
         PresenceEventDispatcher.addListener(this);
         SessionEventDispatcher.addListener(this);
 
-        logger.debug("Status server initiated sucessfully on " + host);
+        logger.debug("Status server initiated sucessfully on: " + host);
     }
 
     @Override
@@ -85,6 +88,8 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
             try {
                 jedis.flushAll();
                 logger.debug(">>>Flush all status.");
+            } catch (JedisException ex) {
+                logger.error("Jedis error: " + ex.getMessage());
             } finally {
                 pool.returnResource(jedis);
             }
@@ -107,6 +112,8 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
             jedis.set(user, ONLINE_SIGN);
 
             logger.debug(">>>Add online user: " + user);
+        } catch (JedisException ex) {
+            logger.error("Jedis error: " + ex.getMessage());
         } finally {
             pool.returnResource(jedis);
         }
@@ -121,11 +128,13 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
         try {
             String value = jedis.get(user);
-            if(value != null) {
+            if (value != null) {
                 jedis.del(user);
 
                 logger.debug(">>>Delete online user: " + user);
             }
+        } catch (JedisException ex) {
+            logger.error("Jedis error: " + ex.getMessage());
         } finally {
             pool.returnResource(jedis);
         }
@@ -133,13 +142,13 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void availableSession(ClientSession session, Presence presence) {
-        logger.debug(">>> Available session" + session.getAddress().getNode());
+        logger.debug(">>>Available session: " + session.getAddress().getNode());
         addOnlineUser(session.getAddress().getNode());
     }
 
     @Override
     public void unavailableSession(ClientSession session, Presence presence) {
-        logger.debug(">>> Unavailable session" + session.getAddress().getNode());
+        logger.debug(">>>Unavailable session: " + session.getAddress().getNode());
         delOnlineUser(session.getAddress().getNode());
     }
 
@@ -165,7 +174,7 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void sessionDestroyed(Session session) {
-        logger.debug(">>> Session destroyed" + session.getAddress().getNode());
+        logger.debug(">>>Session destroyed: " + session.getAddress().getNode());
         delOnlineUser(session.getAddress().getNode());
     }
 
