@@ -15,7 +15,7 @@ public class MasterClient implements Plugin {
 
     @Override
     public void initializePlugin(PluginManager manager, File pluginDirectory) {
-        SyncClient client = new SyncClient(SyncClient.CLIENT_TYPE_XMPP_SERVER);
+        ServerSyncClient client = new ServerSyncClient(SyncClient.CLIENT_TYPE_XMPP_SERVER);
         client.setConfigPath(pluginDirectory.getAbsolutePath() + File.separator + "classes");
         client.start();
     }
