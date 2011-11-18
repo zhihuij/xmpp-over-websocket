@@ -7,7 +7,7 @@ import org.jivesoftware.openfire.container.PluginManager;
 
 import com.netease.xmpp.master.client.SyncClient;
 
-public class MasterClient implements Plugin {
+public class MasterClientPlugin implements Plugin {
     @Override
     public void destroyPlugin() {
         // Do nothing
