@@ -47,7 +47,7 @@ public class XMPPServerConnectionEventHandler extends ServerConnectionEventHandl
             Message data = (Message) ctx.getData();
             updateServerInfo(data);
             startHeartBeat();
-            synchronizedSet(timeoutTime, timeoutValue);
+            timeoutTime = timeoutValue;
             break;
         default:
             super.handle(ctx);
