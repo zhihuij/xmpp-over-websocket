@@ -142,14 +142,14 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void availableSession(ClientSession session, Presence presence) {
-        logger.debug(">>>Available session: " + session.getAddress().getNode());
-        addOnlineUser(session.getAddress().getNode());
+        logger.debug(">>>Available session: " + session.getAddress().toFullJID());
+        addOnlineUser(session.getAddress().toFullJID());
     }
 
     @Override
     public void unavailableSession(ClientSession session, Presence presence) {
-        logger.debug(">>>Unavailable session: " + session.getAddress().getNode());
-        delOnlineUser(session.getAddress().getNode());
+        logger.debug(">>>Unavailable session: " + session.getAddress().toFullJID());
+        delOnlineUser(session.getAddress().toFullJID());
     }
 
     @Override
@@ -174,8 +174,8 @@ public class StatusPlugin implements Plugin, PresenceEventListener, SessionEvent
 
     @Override
     public void sessionDestroyed(Session session) {
-        logger.debug(">>>Session destroyed: " + session.getAddress().getNode());
-        delOnlineUser(session.getAddress().getNode());
+        logger.debug(">>>Session destroyed: " + session.getAddress().toFullJID());
+        delOnlineUser(session.getAddress().toFullJID());
     }
 
     @Override
