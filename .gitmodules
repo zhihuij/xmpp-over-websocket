@@ -1,0 +1,12 @@
+[submodule "Openfire_Dev"]
+	path = Openfire_Dev
+	url = git://github.com/onlychoice/openfire_dev.git
+[submodule "WXMaster"]
+	path = WXMaster
+	url = git://github.com/onlychoice/ws-xmpp-master.git
+[submodule "WXProxy"]
+	path = WXProxy
+	url = git://github.com/onlychoice/ws-xmpp-proxy.git
+[submodule "WXRobot"]
+	path = WXRobot
+	url = git://github.com/onlychoice/ws-xmpp-robot.git
