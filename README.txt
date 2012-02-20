@@ -1,0 +1,1 @@
+This component contains the patch for openfire that required by our customized authentication.
