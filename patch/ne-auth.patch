@@ -1,0 +1,124 @@
+Index: src/java/org/jivesoftware/openfire/auth/AuthToken.java
+===================================================================
+--- src/java/org/jivesoftware/openfire/auth/AuthToken.java	(revision 12878)
++++ src/java/org/jivesoftware/openfire/auth/AuthToken.java	(working copy)
+@@ -95,7 +95,7 @@
+      */
+     public boolean isAnonymous() {
+         if (anonymous == null) {
+-            anonymous = username == null || !UserManager.getInstance().isRegisteredUser(username);
++            anonymous = username == null;
+         }
+         return anonymous;
+     }
+Index: src/java/org/jivesoftware/openfire/net/SASLAuthentication.java
+===================================================================
+--- src/java/org/jivesoftware/openfire/net/SASLAuthentication.java	(revision 12878)
++++ src/java/org/jivesoftware/openfire/net/SASLAuthentication.java	(working copy)
+@@ -39,6 +39,7 @@
+ import javax.security.sasl.SaslException;
+ import javax.security.sasl.SaslServer;
+ 
++import org.dom4j.Attribute;
+ import org.dom4j.DocumentHelper;
+ import org.dom4j.Element;
+ import org.dom4j.Namespace;
+@@ -61,6 +62,9 @@
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import com.netease.xmpp.xauth.result.AccessTokenResult;
++import com.netease.xmpp.xauth.utils.OauthUtils;
++
+ /**
+  * SASLAuthentication is responsible for returning the available SASL mechanisms to use and for
+  * actually performing the SASL authentication.<p>
+@@ -79,7 +83,7 @@
+  */
+ public class SASLAuthentication {
+ 
+-	private static final Logger Log = LoggerFactory.getLogger(SASLAuthentication.class);
++	static final Logger Log = LoggerFactory.getLogger(SASLAuthentication.class);
+ 
+     /**
+      * The utf-8 charset for decoding and encoding Jabber packet streams.
+@@ -229,6 +233,12 @@
+     public static Status handle(LocalSession session, Element doc) throws UnsupportedEncodingException {
+         Status status;
+         String mechanism;
++        
++        Attribute attr = doc.attribute("type");
++        if ("auth".equalsIgnoreCase(doc.getName()) && attr != null && "netease".equalsIgnoreCase(attr.getText())) {
++            return SASLAuthentication.handleNetease(session, doc);
++        }
++        
+         if (doc.getNamespace().asXML().equals(SASL_NAMESPACE)) {
+             ElementType type = ElementType.valueof(doc.getName());
+             switch (type) {
+@@ -785,4 +795,66 @@
+         //Add our providers to the Security class
+         Security.addProvider(new org.jivesoftware.openfire.sasl.SaslProvider());
+     }
++    
++    public static Status handleNetease(LocalSession session, Element doc) {
++        Status status;
++        try {
++            Attribute token = doc.attribute("token");
++            if (token != null && "false".equalsIgnoreCase(token.getText())) {
++                Attribute oauthHeader = doc.attribute("oauth");
++                if (oauthHeader != null) {
++                    try {
++                        System.out.println("Header: " + oauthHeader);
++                        AccessTokenResult result = OauthUtils.getAccessToken("http://163.com", oauthHeader.getText());
++                        if (200 == result.getCode()) {
++                            StringBuilder sb = new StringBuilder();
++                            sb.append("access_token=");
++                            sb.append(result.getAccessToken());
++                            sb.append(";");
++                            sb.append("secret=");
++                            sb.append(result.getAccessTokenSecret());
++                            
++                            String userName = result.getUserAccount();
++                            if(userName.indexOf("@") > -1) {
++                                userName = userName.replace("@", "\\40");
++                            }
++                            
++                            authenticationSuccessful(session, userName, sb.toString().getBytes());
++                            status = Status.authenticated;
++                        } else {
++                            System.out.println("Auth failure: " + result.getCode());
++                            authenticationFailed(session);
++                            status = Status.failed;
++                        }
++                    } catch (Exception e) {
++                        e.printStackTrace();
++                        authenticationFailed(session);
++                        status = Status.failed;
++                    }
++                } else {
++                    authenticationFailed(session);
++                    status = Status.failed;
++                }
++            } else {
++                Attribute oauthHeader = doc.attribute("oauth");
++                String userName = OauthUtils.authToken("http://163.com", oauthHeader.getText());
++                if(userName.indexOf("@") > -1) {
++                    userName = userName.replace("@", "\\40");
++                }
++                
++                if(userName != null) {
++                    authenticationSuccessful(session, userName, null);
++                    status = Status.authenticated;
++                } else {
++                    authenticationFailed(session);
++                    status = Status.failed;
++                }
++            }
++        } catch (Exception ex) {
++            Log.error(ex.getMessage());
++            authenticationFailed(session);
++            status = Status.failed;
++        }
++        return status;
++    }
+ }
