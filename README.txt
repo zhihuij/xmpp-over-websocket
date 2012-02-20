@@ -1,0 +1,1 @@
+This project aimed to provide a solution for real time message push/poll scenarios based on XMPP and websocket.
