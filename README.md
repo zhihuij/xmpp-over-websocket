@@ -1,5 +1,6 @@
-xmpp-over-websocket - A solution for real time message push/poll.
+xmpp-over-websocket
 ===============
+A solution for real time message push/poll.
 
 Getting Started
 ---------------
