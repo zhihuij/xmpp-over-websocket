@@ -3,7 +3,7 @@ xmpp-over-websocket - a solution for real time message push/poll
 This project aimed to provide a solution for real time message pull/poll based on
 xmpp and websocket.
 
- * Homepage: <http://netease.github.com/xmpp-over-websocket>
+ * Homepage: <http://github.com/netease/xmpp-over-websocket>
  * Wiki: <https://github.com/netease/xmpp-over-websocket/wiki/>
  * Issues: <https://github.com/netease/xmpp-over-websocket/issues/>
  * Tags: java, xmpp, websocket
